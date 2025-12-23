@@ -1,0 +1,14 @@
+{
+  "name": "tempad-plugin-stylus",
+  "version": "1.0.0",
+  "description": "Tempad plugin for Stylus",
+  "main": "plugin.js",
+  "type": "module",
+  "scripts": {
+    "build": "unbuild"
+  },
+  "devDependencies": {
+    "@tempad-dev/plugins": "^0.6.1",
+    "unbuild": "^3.6.1"
+  }
+}
