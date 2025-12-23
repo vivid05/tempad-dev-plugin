@@ -1,6 +1,6 @@
 # Timo UI Plugin
 
-一个用于 TemPad Dev 的插件，提供 Timo UI 样式转换功能。
+一个用于 [TemPad Dev](https://github.com/ecomfe/tempad-dev) 的插件，提供 Timo UI 样式转换功能。
 
 ## 功能特性
 
