@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timo UI Plugin</title>
+  <title>TemPad Dev 插件集</title>
   <style>
     * {
       margin: 0;
@@ -97,13 +97,19 @@
 </head>
 <body>
   <div class="container">
-    <h1>🎨 Timo UI Plugin</h1>
-    <p>一个用于 TemPad Dev 的插件，提供智能的样式转换功能。</p>
-    
-    <h2 style="margin-top: 30px; margin-bottom: 15px; color: #333;">📦 插件地址</h2>
+    <h1>🎨 TemPad Dev 插件集</h1>
+    <p>两个样式转换插件：H5（Stylus / CSS）与 React Native。TemPad Dev 一次只加载一个，按项目切换地址即可。</p>
+
+    <h2 style="margin-top: 30px; margin-bottom: 15px; color: #333;">📦 Timo UI —— H5 项目</h2>
     <div class="url-box">
       <code id="pluginUrl">https://vivid05.github.io/tempad-dev-plugin/dist/plugin.mjs</code>
-      <button class="copy-btn" onclick="copyUrl()">复制</button>
+      <button class="copy-btn" onclick="copyUrl('pluginUrl', this)">复制</button>
+    </div>
+
+    <h2 style="margin-top: 30px; margin-bottom: 15px; color: #333;">📦 Timo RN —— rn-store 仓库</h2>
+    <div class="url-box">
+      <code id="pluginUrlRn">https://vivid05.github.io/tempad-dev-plugin/dist/plugin-rn.mjs</code>
+      <button class="copy-btn" onclick="copyUrl('pluginUrlRn', this)">复制</button>
     </div>
     
     <div class="features">
@@ -118,6 +124,13 @@
         <h3>Style 块 (CSS)</h3>
         <p>智能转换 fill → background-color，组合 stroke 为 border，自动过滤不需要的属性</p>
       </div>
+
+      <div class="feature">
+        <h3>RN Style 块 (Timo RN)</h3>
+        <p>Figma CSS → React Native <code>StyleSheet</code>：750 稿尺寸包 <code>s()</code>，左右方向转 <code>start/end</code> 适配阿语，
+        <code>line-height: 120%</code> 按字号换算，<code>box-shadow</code> 拆成 iOS <code>shadow*</code> + 安卓 <code>elevation</code>，
+        渐变 / 毛玻璃 / grid 等 RN 不支持的转成 <code>// ⚠</code> 提示</p>
+      </div>
     </div>
     
     <p style="margin-top: 30px; text-align: center; color: #999; font-size: 0.9em;">
@@ -126,10 +139,9 @@
   </div>
   
   <script>
-    function copyUrl() {
-      const url = document.getElementById('pluginUrl').textContent;
+    function copyUrl(id, btn) {
+      const url = document.getElementById(id).textContent;
       navigator.clipboard.writeText(url).then(() => {
-        const btn = document.querySelector('.copy-btn');
         btn.textContent = '已复制！';
         setTimeout(() => {
           btn.textContent = '复制';

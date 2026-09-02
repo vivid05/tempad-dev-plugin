@@ -56,7 +56,8 @@ const server = createServer(sslOptions, async (req, res) => {
 server.listen(PORT, '0.0.0.0', async () => {
   console.log(`\n🚀 HTTPS 开发服务器已启动！`);
   console.log(`\n📍 访问地址:`);
-  console.log(`   https://localhost:${PORT}/dist/plugin.mjs`);
+  console.log(`   Timo UI (H5/Stylus): https://localhost:${PORT}/dist/plugin.mjs`);
+  console.log(`   Timo RN (RN 样式)  : https://localhost:${PORT}/dist/plugin-rn.mjs`);
 
   try {
     const { exec } = await import('child_process');
@@ -68,10 +69,12 @@ server.listen(PORT, '0.0.0.0', async () => {
     const ip = stdout.trim();
 
     if (ip) {
-      console.log(`   https://${ip}:${PORT}/dist/plugin.mjs`);
+      console.log(`   Timo UI (H5/Stylus): https://${ip}:${PORT}/dist/plugin.mjs`);
+      console.log(`   Timo RN (RN 样式)  : https://${ip}:${PORT}/dist/plugin-rn.mjs`);
     }
   } catch (error) {
     console.log(`   https://<your-ip>:${PORT}/dist/plugin.mjs`);
+    console.log(`   https://<your-ip>:${PORT}/dist/plugin-rn.mjs`);
   }
 
   console.log(`\n✨ CORS 已启用，支持跨域访问`);
