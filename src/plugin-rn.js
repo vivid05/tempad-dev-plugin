@@ -744,10 +744,15 @@ export default definePlugin({
         return lines.join('\n')
       }
     },
-    css: {
+    // 内置 css 块在 tempad-dev 的 worker 里是硬编码排在自定义块之前的
+    // （codegen/worker.ts：component → css → js → ...Object.keys(rest)），
+    // 想让 RN Style 排在上面，只能关掉内置块、用自定义块补一个同样的 CSS。
+    // 自定义块不给 transform 时走的是同一个 serializeCSS，输出与内置块一致。
+    cssRaw: {
       title: 'CSS',
       lang: 'css'
     },
+    css: false,
     js: false
   }
 })

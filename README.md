@@ -29,7 +29,9 @@ TemPad Dev 一次只加载一个插件，写 H5 用上面那个、切图到 RN �
 
 ## Timo RN（React Native）
 
-面板里出现 **RN Style** 块，直接产出能贴进 `StyleSheet.create({ ... })` 的属性行；下面的 **CSS** 块保留 Figma 原始 CSS 方便对照。
+面板里 **RN Style** 块在最上面，直接产出能贴进 `StyleSheet.create({ ... })` 的属性行；下面的 **CSS** 块保留 Figma 原始 CSS 方便对照。
+
+> 内置 css 块在 tempad-dev 里是硬编码排在自定义块之前的（`codegen/worker.ts`: component → css → js → `...Object.keys(rest)`），所以这里把内置块设为 `css: false`，另用自定义块 `cssRaw` 补一个 CSS 输出，才能让 RN Style 排到上面。
 
 转换规则对齐 rn-store 仓库的 `rn-ui-from-design` skill 与 withdraw 模块现有代码：
 
