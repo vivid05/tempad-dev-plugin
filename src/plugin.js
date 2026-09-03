@@ -24,19 +24,21 @@ export default definePlugin({
       lang: 'scss',
       transform({ style: rawStyle }) {
         const style = resolveVarFallbacks(rawStyle)
-        const fontSize = style['font-size']
-        const color = style.color
-        const lineHeight = style['line-height']
-        const fontWeight = style['font-weight']
+        // 顺序即 mixin 的参数顺序，不能调
+        const args = [style['font-size'], style.color, style['line-height'], style['font-weight']]
 
         // 检查是否有任何字体属性
-        const hasFontProps = fontSize || color || lineHeight || fontWeight
-
-        if (!hasFontProps) {
+        if (!args.some(Boolean)) {
           return '无'
         }
 
-        return `@include font(${fontSize}, ${color}, ${lineHeight}, ${fontWeight});`
+        // 缺的参数不能直接插值，否则输出字面量 undefined。
+        // 末尾缺的直接不传（走 mixin 默认值）；中间缺的用 null 占位，保证后面的参数不串位。
+        while (args.length && !args[args.length - 1]) {
+          args.pop()
+        }
+
+        return `@include font(${args.map((arg) => arg || 'null').join(', ')});`
       }
     },
     css: {

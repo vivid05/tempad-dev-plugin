@@ -17,6 +17,7 @@ TemPad Dev 一次只加载一个插件，写 H5 用上面那个、切图到 RN �
 
 - 自动组合 `font-size`、`color`、`line-height`、`font-weight` 为 Stylus mixin 格式
 - 没有字体属性时显示"无"
+- 缺某个属性时不会输出字面量 `undefined`：末尾缺的参数直接不传（走 mixin 默认值），中间缺的用 `null` 占位以保证参数不串位
 
 ### Style 块 (CSS)
 
