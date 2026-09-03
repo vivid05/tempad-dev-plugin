@@ -68,6 +68,16 @@ TemPad Dev 一次只加载一个插件，写 H5 用上面那个、切图到 RN �
 - `text-overflow` / `-webkit-line-clamp` → 提示改用 `numberOfLines`
 - 容器样式与文字样式之间插一行 `// 文字` 分隔，方便拆成两个 StyleSheet 条目
 
+### Figma 变量
+
+设计稿用变量（`color: var(--G2)`）时会**自动取出真实色值**，并在行尾标出变量名，方便往模块 `constants/theme.ts` 的 `colors` 里落：
+
+```ts
+color: '#74777A', // 变量 G2
+```
+
+原理：tempad 给插件的那份 style 保留了变量的 inline fallback（`preserveInlineFallbacks`），插件挂 `transformVariable` 就能读到真值，且 `transform` 拿到的 `style` 已是替换后的值。变量没有真值时保留 `var(...)` 并给 ⚠ 提示，让你去右侧 Colors 面板取 Hex。尺寸类变量（`var(--spacing-md, 32px)`）同样会被解析成 `s(32)`。
+
 ### 阴影 / 边框
 
 - `box-shadow: 0 8px 24px rgba(0,0,0,.08)` → `shadowColor`（保留 rgba）+ `shadowOpacity: 1` + `shadowRadius` + `shadowOffset` + `elevation`
