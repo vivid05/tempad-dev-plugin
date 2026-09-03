@@ -27,7 +27,7 @@ TemPad Dev 一次只加载一个插件，写 H5 用上面那个、切图到 RN �
 
 ### Figma 变量
 
-两个块都会把 `var(--G2)` 解析成真实值（`#74777A`），取不到真值时保留 `var(...)`。原理见下面 Timo RN 的「Figma 变量」一节。
+`var(--G2, #74777A)` 会取 fallback 里的真值输出 `#74777A`。前提是 TemPad 的「变量显示」偏好不能是默认的 `reference`，详见下面 Timo RN 的「Figma 变量」一节。
 
 ---
 
@@ -74,9 +74,20 @@ TemPad Dev 一次只加载一个插件，写 H5 用上面那个、切图到 RN �
 
 ### Figma 变量
 
-设计稿用变量（`color: var(--G2)`）时会**自动取出真实色值**，直接输出 `color: '#74777A'`。
+设计稿用了 Figma 变量时，**先去 TemPad Dev 偏好设置把「变量显示」从默认的 `reference` 改成 `resolved` 或 `both`**，否则插件根本拿不到真值。
 
-原理：tempad 给插件的那份 style 保留了变量的 inline fallback（`preserveInlineFallbacks`），插件挂 `transformVariable` 就能读到真值，且 `transform` 拿到的 `style` 已是替换后的值。变量没有真值时保留 `var(...)` 并给 ⚠ 提示，让你去右侧 Colors 面板取 Hex。尺寸类变量（`var(--spacing-md, 32px)`）同样会被解析成 `s(32)`。
+| 模式 | tempad 传给插件的值 | 插件输出 |
+| --- | --- | --- |
+| `reference`（默认） | `var(---G2-)` —— 真值被 `stripFallback` 抹掉了 | 原样保留 + `// ⚠` 提示改设置 |
+| `resolved` | `#74777A` | `color: '#74777A'` |
+| `both` | `var(---G2-, #74777A)` | `color: '#74777A'`（取 fallback） |
+
+尺寸类变量同理：`padding: var(--spacing-md, 32px)` → `padding: s(32)`。
+
+两个坑记一下：
+
+- **别给代码块挂 `transformVariable`**。挂上之后 tempad 会把 style 换成 `pluginVariableStyle`，而那份里绑定了变量的属性会被 `applyVariableToProps` **无条件覆盖**成不带 fallback 的 `var(--x)`（`getVariableCssExpr` 只产出变量名），真值反而更取不到。
+- `reference` 模式下 `padding: var(--x)` 这类长度解析不出来会被丢掉，所以插件在入口就按 CSS 属性名告警，避免样式静默消失。
 
 ### 阴影 / 边框
 

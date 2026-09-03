@@ -141,6 +141,19 @@ function bare(value, ctx) {
   return parsed.raw ? parsed.raw : n2(parsed.px)
 }
 
+/**
+ * 变量显示模式为 'both' 时值形如 `var(--x, 32px)` / `var(--x, rgba(0,0,0,.06))`，
+ * 先把 fallback 里的真值取出来，后面按普通值处理。
+ * 模式为 'resolved' 时 tempad 已经替换成真值；'reference' 模式下真值被 stripFallback 抹掉了，
+ * 插件侧拿不到，只能提示用户改偏好设置。
+ */
+function resolveVarFallbacks(value) {
+  return String(value).replace(
+    /var\(\s*--[^,()]+,\s*([^()]*(?:\([^()]*\)[^()]*)*)\)/g,
+    (_, fallback) => fallback.trim()
+  )
+}
+
 /** 色值归一：拆掉 var() 取兜底值，短 hex 补全并大写，rgba 原样保留 */
 function normalizeColor(input) {
   let v = String(input).trim()
@@ -323,8 +336,14 @@ function toRNStyle(style, ctx) {
 
   for (const [rawKey, rawValue] of Object.entries(style)) {
     const key = rawKey.toLowerCase()
-    const value = String(rawValue).trim()
+    const value = resolveVarFallbacks(String(rawValue).trim())
     if (!value || DROP_SILENT.has(key)) continue
+
+    // reference 模式下真值已被 tempad 抹掉，这里只剩 var(--x)：多数属性会解析失败被丢掉，
+    // 所以在入口就告警，别让样式静默消失
+    if (value.includes('var(')) {
+      note(`${key} 用的是 Figma 变量，但 TemPad 没把真值传给插件：偏好设置里把「变量显示」从 reference 改成 resolved（或 both）`)
+    }
 
     switch (key) {
       // ---------- 布局 ----------
@@ -721,12 +740,6 @@ export default definePlugin({
     rn: {
       title: 'RN Style',
       lang: 'ts',
-      // 设计稿用了 Figma 变量时，样式值是 var(--x)。插件专用的 style 里带着 fallback
-      // （worker 侧用 preserveInlineFallbacks 生成），所以这里能直接把真值取出来；
-      // 返回值会替换掉整个 var()，transform 拿到的 style 就已经是真值了。
-      transformVariable({ name, value }) {
-        return value || `var(--${name})`
-      },
       transform({ style, options }) {
         const ctx = { rootFontSize: (options && options.rootFontSize) || 16 }
         const { props, notes, comments, unknown } = toRNStyle(style || {}, ctx)
@@ -735,13 +748,6 @@ export default definePlugin({
         const sorted = sortProps(props)
         const container = sorted.filter(([key]) => !TEXT_KEYS.has(key))
         const text = sorted.filter(([key]) => TEXT_KEYS.has(key))
-        // 变量没解析出真值时给个提示，别让 var(...) 悄悄进代码
-        for (const [key, code] of sorted) {
-          if (code.includes('var(')) {
-            notes.unshift(`${key} 的变量没解析出真值，去 Figma 右侧 Colors 面板取 Hex 手填`)
-          }
-        }
-
         const line = ([key, code]) => {
           const tip = comments.get(key)
           return `${key}: ${code},${tip ? ` // ${tip}` : ''}`

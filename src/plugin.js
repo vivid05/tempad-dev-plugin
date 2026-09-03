@@ -1,14 +1,20 @@
 import { definePlugin } from '@tempad-dev/plugins'
 
-/**
- * 设计稿用 Figma 变量时，样式值是 var(--x)，直接输出没法用。
- * tempad 给插件的那份 style 保留了变量的 inline fallback（worker 侧 preserveInlineFallbacks），
- * 所以这里能读到真值；返回值会替换掉整个 var()，transform 拿到的 style 就是替换后的值。
- * 钩子是按代码块生效的，font 和 css 两块都要挂。
- */
-function resolveVariable({ name, value }) {
-  return value || `var(--${name})`
+/** 变量显示为 'both' 时值形如 `var(--x, #74777A)`，取出 fallback 里的真值 */
+function resolveVarFallbacks(style) {
+  const next = {}
+  for (const [key, value] of Object.entries(style)) {
+    next[key] = String(value).replace(
+      /var\(\s*--[^,()]+,\s*([^()]*(?:\([^()]*\)[^()]*)*)\)/g,
+      (_, fallback) => fallback.trim()
+    )
+  }
+  return next
 }
+
+// 注：不要挂 transformVariable。挂了它 tempad 会把 style 换成 pluginVariableStyle，
+// 而那份里绑定了变量的属性会被无条件覆盖成不带 fallback 的 var(--x)，真值反而丢了。
+// 变量真值靠 TemPad 偏好设置里的「变量显示」= resolved / both 下发。
 
 export default definePlugin({
   name: 'Timo UI',
@@ -16,8 +22,8 @@ export default definePlugin({
     font: {
       title: 'Font',
       lang: 'scss',
-      transformVariable: resolveVariable,
-      transform({ style }) {
+      transform({ style: rawStyle }) {
+        const style = resolveVarFallbacks(rawStyle)
         const fontSize = style['font-size']
         const color = style.color
         const lineHeight = style['line-height']
@@ -36,8 +42,8 @@ export default definePlugin({
     css: {
       title: 'Style', // 自定义代码块标题
       lang: 'css', // 自定义语法高亮语言
-      transformVariable: resolveVariable,
-      transform({ style }) {
+      transform({ style: rawStyle }) {
+        const style = resolveVarFallbacks(rawStyle)
         const fontProps = ['font-size', 'color', 'line-height', 'font-weight']
         const strokeProps = ['stroke-width', 'stroke']
         const filteredProps = ['font-family', 'font-style'] // 需要过滤掉的属性
