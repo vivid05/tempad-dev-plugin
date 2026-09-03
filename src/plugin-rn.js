@@ -162,19 +162,6 @@ function isColorToken(token) {
   return /^(#|rgba?\(|hsla?\(|var\()/i.test(token) || /^(transparent|currentcolor|white|black|red)$/i.test(token)
 }
 
-/**
- * transformVariable 解析出的「真值 → Figma 变量名」。
- * tempad 的调用顺序是：每个属性先跑 transformVariable，全部跑完再跑 transform，
- * 所以这里攒一轮、在 transform 里读完即清，不会串到下一个节点。
- */
-const resolvedVars = new Map()
-
-/** 变量名清洗：`--中性色/G2 二级文字` 会被 tempad 压成 `-G2-` 这种，去掉多余连字符 */
-function varLabel(name) {
-  const cleaned = String(name).replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-').trim()
-  return /[\w\u4e00-\u9fa5]{2,}/.test(cleaned) ? cleaned : ''
-}
-
 const FONT_WEIGHT_MAP = {
   thin: '100',
   extralight: '200',
@@ -738,14 +725,7 @@ export default definePlugin({
       // （worker 侧用 preserveInlineFallbacks 生成），所以这里能直接把真值取出来；
       // 返回值会替换掉整个 var()，transform 拿到的 style 就已经是真值了。
       transformVariable({ name, value }) {
-        if (!value) {
-          return `var(--${name})`
-        }
-        const label = varLabel(name)
-        if (label) {
-          resolvedVars.set(normalizeColor(value), label)
-        }
-        return value
+        return value || `var(--${name})`
       },
       transform({ style, options }) {
         const ctx = { rootFontSize: (options && options.rootFontSize) || 16 }
@@ -755,16 +735,12 @@ export default definePlugin({
         const sorted = sortProps(props)
         const container = sorted.filter(([key]) => !TEXT_KEYS.has(key))
         const text = sorted.filter(([key]) => TEXT_KEYS.has(key))
-        // 从变量取到的色值，行尾标一下 Figma 变量名，方便往 constants/theme.ts 的 colors 里落
+        // 变量没解析出真值时给个提示，别让 var(...) 悄悄进代码
         for (const [key, code] of sorted) {
-          if (comments.has(key)) continue
-          const label = resolvedVars.get(code.replace(/^'|'$/g, ''))
-          if (label) comments.set(key, `变量 ${label}`)
           if (code.includes('var(')) {
             notes.unshift(`${key} 的变量没解析出真值，去 Figma 右侧 Colors 面板取 Hex 手填`)
           }
         }
-        resolvedVars.clear()
 
         const line = ([key, code]) => {
           const tip = comments.get(key)
