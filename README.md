@@ -25,6 +25,10 @@ TemPad Dev 一次只加载一个插件，写 H5 用上面那个、切图到 RN �
 - 自动过滤 `font-family` 和 `font-style` 属性
 - 输出标准 CSS 格式
 
+### Figma 变量
+
+两个块都会把 `var(--G2)` 解析成真实值（`#74777A`），取不到真值时保留 `var(...)`。原理见下面 Timo RN 的「Figma 变量」一节。
+
 ---
 
 ## Timo RN（React Native）

@@ -1,11 +1,22 @@
 import { definePlugin } from '@tempad-dev/plugins'
 
+/**
+ * 设计稿用 Figma 变量时，样式值是 var(--x)，直接输出没法用。
+ * tempad 给插件的那份 style 保留了变量的 inline fallback（worker 侧 preserveInlineFallbacks），
+ * 所以这里能读到真值；返回值会替换掉整个 var()，transform 拿到的 style 就是替换后的值。
+ * 钩子是按代码块生效的，font 和 css 两块都要挂。
+ */
+function resolveVariable({ name, value }) {
+  return value || `var(--${name})`
+}
+
 export default definePlugin({
   name: 'Timo UI',
   code: {
     font: {
       title: 'Font',
       lang: 'scss',
+      transformVariable: resolveVariable,
       transform({ style }) {
         const fontSize = style['font-size']
         const color = style.color
@@ -25,6 +36,7 @@ export default definePlugin({
     css: {
       title: 'Style', // 自定义代码块标题
       lang: 'css', // 自定义语法高亮语言
+      transformVariable: resolveVariable,
       transform({ style }) {
         const fontProps = ['font-size', 'color', 'line-height', 'font-weight']
         const strokeProps = ['stroke-width', 'stroke']
